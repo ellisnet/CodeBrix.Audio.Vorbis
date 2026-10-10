@@ -4,10 +4,11 @@
 # ==============================================================================================
 #
 #   Written on Linux on 2026-10-10. FIRST RUN 2026-10-10 on Jeremy's Apple Silicon Mac (macOS
-#   27.0.1, Xcode 27.0, cmake 4.4.3) WITHOUT Rosetta 2: ran UNCHANGED, every static check passed,
-#   the smoke test was reported UNRUN and nothing was adopted, exactly as designed - see
-#   ../BUILD-PROVENANCE.txt. Install Rosetta 2 and re-run to complete the gate. If something
-#   breaks on another machine, fix it IN THE SCRIPT (or build-common.sh) and record it there.
+#   27.0.1, Xcode 27.0, cmake 4.4.3): ran UNCHANGED. Without Rosetta 2 it passed every static
+#   check, reported the smoke test UNRUN and adopted nothing, exactly as designed; re-run the same
+#   day after `softwareupdate --install-rosetta --agree-to-license`, it passed the complete gate
+#   under Rosetta 2 and adopted - see ../BUILD-PROVENANCE.txt. If something breaks on another
+#   machine, fix it IN THE SCRIPT (or build-common.sh) and record it there.
 #
 # USAGE
 #     cd vorbis-native-tools/macos

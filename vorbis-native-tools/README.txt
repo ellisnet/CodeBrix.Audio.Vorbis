@@ -46,8 +46,8 @@ WHAT BUILDS WHERE
   win-arm64      windows/build-win-arm64.ps1     ARM64 Windows (or x64,  cross-built there;
                                                  cross; smoke test unrun) smoke test UNRUN
   osx-arm64      macos/build-osx-arm64.sh        Apple Silicon Mac       built (Jeremy's Apple Silicon Mac)
-  osx-x64        macos/build-osx-x64.sh          Intel Mac, or Apple     built there (cross); smoke test
-                                                 Silicon + Rosetta 2     UNRUN (no Rosetta 2), NOT adopted
+  osx-x64        macos/build-osx-x64.sh          Intel Mac, or Apple     built there (cross, verified
+                                                 Silicon + Rosetta 2     under Rosetta 2)
   (host)         build-host.sh                   this Linux dev box      NOT shipped
 
 The Windows scripts were written on Linux and first ran on 2026-10-10 on
@@ -58,10 +58,10 @@ Windows device (Surface Pro X) as build-win-arm64.ps1's header describes. The
 macOS scripts were also written on Linux and first ran on 2026-10-10 on Jeremy's
 Apple Silicon Mac (macOS 27.0.1, Xcode 27.0, cmake 4.4.3); both ran UNCHANGED.
 osx-arm64 passed the complete gate and was adopted. osx-x64 was cross-built and
-passed every static check, but its smoke test needs Rosetta 2, which that Mac
-did not have, so it is NOT adopted yet: install Rosetta 2
-(softwareupdate --install-rosetta --agree-to-license) and re-run
-build-osx-x64.sh; BUILD-PROVENANCE.txt has the details. If a script breaks on
+passed every static check but stopped at the smoke test until Rosetta 2 was
+installed (softwareupdate --install-rosetta --agree-to-license); re-run the same
+day under Rosetta 2, it passed the complete gate and was adopted. All nine RIDs
+are now built; BUILD-PROVENANCE.txt has the details. If a script breaks on
 another machine, fix it in the script and record it there.
 
 HOW TO REBUILD

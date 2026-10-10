@@ -14,9 +14,9 @@
 #   FIRST RUN 2026-10-10 on Jeremy's Apple Silicon Mac (macOS 27.0.1, Xcode 27.0 / Apple clang
 #   21.0.0, macOS 27.0 SDK, cmake 4.4.3, GNU Make 3.81, /bin/bash 3.2): both architecture scripts
 #   ran UNCHANGED. osx-arm64 passed the complete gate and was adopted; osx-x64 passed every static
-#   check and stopped, as designed, at the smoke test (no Rosetta 2 on that Mac). Recorded in
-#   ../BUILD-PROVENANCE.txt. If something breaks on another machine, fix it IN THE SCRIPT and
-#   record it there too.
+#   check, stopped as designed at the smoke test while Rosetta 2 was absent, and passed the complete
+#   gate under Rosetta 2 once it was installed the same day. Recorded in ../BUILD-PROVENANCE.txt.
+#   If something breaks on another machine, fix it IN THE SCRIPT and record it there too.
 #
 # Everything it needs is in this repository: ../ogg and ../vorbis (the unmodified Xiph release
 # trees), ../shim (the codebrix_vorbis shim + its CMakeLists.txt), ../patches (empty),
@@ -460,6 +460,6 @@ INFO
         echo "adopted -> src/CodeBrix.Audio.Vorbis/runtimes/$RID/native/ ($LIB_NAME + both licences)"
         echo "        -> vorbis-native-tools/unstripped/$RID/$LIB_NAME"
     fi
-    echo "Record the build in ../BUILD-PROVENANCE.txt (replace the NOT YET BUILT block for $RID) from"
+    echo "Record the build in ../BUILD-PROVENANCE.txt (replace the block for $RID) from"
     echo "output/$RID/BUILD-INFO.txt, then commit the adopted files."
 }

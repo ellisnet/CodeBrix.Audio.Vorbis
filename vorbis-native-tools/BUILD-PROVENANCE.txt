@@ -309,7 +309,9 @@ macOS (the two osx-* entries)
                     Xcode.app, Apple clang 21.0.0 (clang-2100.3.34.2), ld
                     PROJECT:ld-27037.1, macOS 27.0 SDK, cmake 4.4.3 (Homebrew,
                     /opt/homebrew/bin), GNU Make 3.81, /bin/bash 3.2.57. Rosetta 2
-                    was NOT installed on this Mac at the time of the first run.
+                    was NOT installed when the scripts first ran; Jeremy installed it
+                    the same day (softwareupdate --install-rosetta --agree-to-license)
+                    and re-ran build-osx-x64.sh, which then passed the complete gate.
   First run       : 2026-10-10. Both scripts configured, built and passed every
                     static gate check UNCHANGED on the first attempt; nothing in
                     build-common.sh or either architecture script needed a fix.
@@ -330,7 +332,14 @@ macOS (the two osx-* entries)
                     each .o file's modification time; strip -x removes the stabs
                     but the UUID computed over them stays. So two builds of the
                     same source ship the same code under different UUIDs, and the
-                    sha256 values below identify ONE build, not the source.
+                    sha256 values below identify ONE build, not the source. (The
+                    adopted osx-x64 file and the static-only attempt twelve minutes
+                    earlier confirm it: 73 differing bytes, all UUID + signature.)
+                    ld's documented -reproducible option zeroes the stab timestamps
+                    and, in a scratch test on this Mac, made relinks and fresh
+                    recompiles byte-identical with the dSYM still matching; this
+                    build does NOT use it yet - adding it would change every macOS
+                    UUID/sha once and belongs in all CodeBrix native-tools at once.
   Gate            : file + lipo (thin, right arch), exact exports, install name
                     @rpath/libcodebrix_vorbis.dylib, system-only dependencies, no
                     LC_RPATH, minos CHECKED, no -Wunguarded-availability, valid
@@ -367,12 +376,13 @@ Managed proof    : dotnet test (xUnit v3, 83 tests, .NET SDK 10.0.401, arm64) pa
                    from runtimes/osx-arm64/native/, 2026-10-10
 
 ================================================================================
-osx-x64              BUILT (cross) - STATIC GATE PASSED, SMOKE UNRUN, NOT ADOPTED
+osx-x64                                                           BUILT + PASSED
 ================================================================================
-Built            : 2026-10-10 17:50:04 UTC (3 s)
+Built            : 2026-10-10 18:02:13 UTC (3 s)
 Built by         : macos/build-osx-x64.sh (route: cross-compiled on arm64 via
-                   CMAKE_OSX_ARCHITECTURES=x86_64; Rosetta 2 NOT installed)
-Build host       : the Apple Silicon Mac above (macOS 27.0.1, arm64)
+                   CMAKE_OSX_ARCHITECTURES=x86_64, verified under Rosetta 2)
+Build host       : the Apple Silicon Mac above (macOS 27.0.1, arm64), Rosetta 2 installed
+                   minutes earlier
 Compiler / SDK   : Apple clang version 21.0.0 (clang-2100.3.34.2) / macOS 27.0 SDK
                    (Xcode 27.0, 27A266a)
 cmake            : 4.4.3, generator "Unix Makefiles", CMAKE_OSX_ARCHITECTURES=x86_64,
@@ -382,31 +392,26 @@ File             : libcodebrix_vorbis.dylib - Mach-O 64-bit x86_64, thin (lipo: 
 Minimum macOS    : 10.14 (checked: LC_BUILD_VERSION minos 10.14; 0 -Wunguarded-availability
                    warnings; 0 weak imports)
 Size (signed)    : 877600 bytes (strip -x, then codesign --sign -; signature valid)
-SHA256           : a1657b8e081d72324239688087e742d6e88f2ef65cab2de3c801a9fa728b5642
-LC_UUID          : 1E777B13-9214-3B3E-90E2-0A35403F96C1 (equal stripped/unstripped)
-Unstripped       : 1038504 bytes, sha256 37ee86a21d489cc37f1dfacb6ab46c9501f8e57a5d0e767f350e660e757d33e8
-                   - left in output/osx-x64/unstripped/ (git-ignored); NOT copied to
-                   unstripped/osx-x64/, because nothing was adopted
+SHA256           : fa4f9f133e9b42976950a6343beeb80882f355ee1feb95422b357f4cf58d4a2b
+LC_UUID          : F0858B1F-9ADE-3B07-ACB0-63FB5A4C26EC (equal in the stripped and the
+                   unstripped file)
+Unstripped       : 1038504 bytes -> unstripped/osx-x64/libcodebrix_vorbis.dylib
+                   sha256 830634b5da1ceb73313757e1fd50468d917f9aa344c31bcf75271eaac88b7016
 Exports          : exactly the 11 codebrix_vorbis_* functions
 Dependencies     : /usr/lib/libSystem.B.dylib only
-Smoke test       : NOT RUN - an Apple Silicon Mac cannot execute x86_64 code without
-                   Rosetta 2, and Rosetta 2 was not installed. Every static check
-                   passed; the script reported the gate INCOMPLETE, exited 1 and adopted
-                   nothing, as designed (the macOS scripts have no adopt-anyway switch).
-                   src/CodeBrix.Audio.Vorbis/runtimes/osx-x64/ does not exist yet, so
-                   the package is still 8 of 9 RIDs - do not publish.
-To finish        : on the same Mac, install Rosetta 2 (Apple's x86_64 translation
-                   layer; an administrator must run it, and it accepts Apple's licence):
-                       softwareupdate --install-rosetta --agree-to-license
-                   then
-                       cd vorbis-native-tools/macos && ./build-osx-x64.sh
-                   The script detects Rosetta (pgrep oahd / libRosettaRuntime), runs the
-                   x86_64 smoke test under it and, on a COMPLETE gate, adopts into
-                   runtimes/osx-x64/native/ and unstripped/osx-x64/. Then replace this
-                   block from output/osx-x64/BUILD-INFO.txt; expect a different sha256,
-                   LC_UUID and time from the ones above with the same code bytes (see
-                   Reproducibility). An Intel Mac running the script natively is the
-                   other route.
+Smoke test       : PASSED on the build host under Rosetta 2 (47 checks, SMOKE TEST PASSED,
+                   exit 0): the x86_64 smoke-test program and the staged dylib both ran
+                   translated
+Managed proof    : NOT RUN - this Mac has only the arm64 .NET SDK, which cannot load an
+                   x86_64 dylib. An x64 .NET 10 SDK under Rosetta 2, or an Intel Mac, would
+                   give the equivalent of the win-x64 / osx-arm64 lines.
+Earlier attempt  : the same script at 17:50:04 UTC the same day, before Rosetta 2 was
+                   installed, passed every static check, reported the smoke test UNRUN and
+                   adopted nothing, as designed (sha256
+                   a1657b8e081d72324239688087e742d6e88f2ef65cab2de3c801a9fa728b5642, LC_UUID
+                   1E777B13-9214-3B3E-90E2-0A35403F96C1). That file and the adopted one
+                   differ in 73 bytes, all inside LC_UUID and the code signature - the same
+                   code (see Reproducibility above).
 
 Host build (NOT shipped)
 --------------------------------------------------------------------------------

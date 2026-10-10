@@ -5,12 +5,18 @@
 #
 # Sourced by build-osx-arm64.sh and build-osx-x64.sh; not meant to be run directly.
 #
-#   NEVER YET RUN. Written on Linux on 2026-10-10, modelled closely on CodeBrix.Sdl3's
+#   Written on Linux on 2026-10-10, modelled closely on CodeBrix.Sdl3's
 #   sdl3-native-tools/macos/build-common.sh (itself built on the run-tested llama-native-tools
 #   and dav1d-native-tools macOS scripts: the `head -1` SIGPIPE trap, strip -> codesign
 #   ordering, size measured after signing, the deployment-target stamp CHECKED rather than
-#   reported, LC_UUID equal in the stripped and unstripped files). Expect to fix something on the
-#   first real run; fix it IN THE SCRIPT and record it in ../BUILD-PROVENANCE.txt.
+#   reported, LC_UUID equal in the stripped and unstripped files).
+#
+#   FIRST RUN 2026-10-10 on Jeremy's Apple Silicon Mac (macOS 27.0.1, Xcode 27.0 / Apple clang
+#   21.0.0, macOS 27.0 SDK, cmake 4.4.3, GNU Make 3.81, /bin/bash 3.2): both architecture scripts
+#   ran UNCHANGED. osx-arm64 passed the complete gate and was adopted; osx-x64 passed every static
+#   check and stopped, as designed, at the smoke test (no Rosetta 2 on that Mac). Recorded in
+#   ../BUILD-PROVENANCE.txt. If something breaks on another machine, fix it IN THE SCRIPT and
+#   record it there too.
 #
 # Everything it needs is in this repository: ../ogg and ../vorbis (the unmodified Xiph release
 # trees), ../shim (the codebrix_vorbis shim + its CMakeLists.txt), ../patches (empty),

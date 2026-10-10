@@ -3,8 +3,10 @@
 # build-osx-arm64.sh - build libcodebrix_vorbis.dylib for the osx-arm64 runtime identifier
 # ==============================================================================================
 #
-#   NEVER YET RUN. Written on Linux on 2026-10-10. Expect to fix something on the first real
-#   run; fix it IN THE SCRIPT (or build-common.sh) and record it in ../BUILD-PROVENANCE.txt.
+#   Written on Linux on 2026-10-10. FIRST RUN 2026-10-10 on Jeremy's Apple Silicon Mac (macOS
+#   27.0.1, Xcode 27.0, cmake 4.4.3): ran UNCHANGED, the complete gate passed (47-check smoke
+#   test included) and the result was adopted - see ../BUILD-PROVENANCE.txt. If something breaks
+#   on another machine, fix it IN THE SCRIPT (or build-common.sh) and record it there.
 #
 # USAGE
 #     cd vorbis-native-tools/macos

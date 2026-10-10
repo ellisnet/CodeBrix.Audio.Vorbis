@@ -1,0 +1,9 @@
+# The licence texts shipped beside every native binary must be byte-identical on all nine RIDs,
+# whichever OS checked the repository out and ran the build. Never convert their line endings.
+licenses/LICENSE-Vorbis.txt -text
+ogg/COPYING -text
+vorbis/COPYING -text
+vorbis/lib/lpc.c -text
+# Shell scripts must keep LF to run (Windows checkouts included).
+*.sh text eol=lf
+*.env text eol=lf

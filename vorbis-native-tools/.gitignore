@@ -1,0 +1,51 @@
+# ==============================================================================
+# vorbis-native-tools/.gitignore
+# ==============================================================================
+#
+# LINE 1 IS LOAD-BEARING - DO NOT DELETE IT.
+#
+# The repository-root .gitignore is the standard Visual Studio / .NET one. It
+# ignores names that also occur inside the vendored Xiph source trees and in
+# this tooling, for example:
+#
+#     [Ww][Ii][Nn]32/    -> ogg/win32/ and vorbis/win32/ (part of the upstream
+#                           release tarballs)
+#     *.env              -> linux/pins.env
+#     [Dd]ebug/  [Rr]elease/  [Oo]ut/  [Ll]og/ ...
+#
+# Without the "!*" below, such files would be silently left out of every
+# commit, and the vendored snapshots would no longer match their tarballs in
+# upstream-downloads/. A nested .gitignore takes precedence over the ones above
+# it, so re-including everything here and then re-ignoring only what this
+# folder genuinely produces is the correct fix - and it keeps the root
+# .gitignore untouched. (Same arrangement as CodeBrix.Sdl3's sdl3-native-tools.)
+#
+# Verify at any time with:
+#     git check-ignore -v vorbis-native-tools/vorbis/win32/vorbis.def
+#     git check-ignore -v vorbis-native-tools/linux/pins.env
+#         -> should print nothing (i.e. the file is NOT ignored)
+# ==============================================================================
+
+# Re-include everything under this folder, overriding the root .gitignore.
+!*
+!*/
+
+# --- what this folder really does produce, and must not commit ---------------
+
+# Built native libraries, unstripped copies, smoke-test binaries, BUILD-INFO,
+# the host build for the managed tests. ONE tree, shared by every platform
+# build, so all RIDs land side by side.
+#
+# THE LEADING SLASH MATTERS: without it the pattern would match ANY directory
+# named "output" at any depth. The trailing /* (not a bare /output/) leaves the
+# directory visible so the README negation below can work.
+/output/*
+!/output/README.txt
+
+# Local scratch that the scripts may leave behind.
+*.tmp
+*.log
+build-scratch/
+
+# Finder droppings (the "!*" above overrides any inherited .DS_Store rule).
+.DS_Store

@@ -1,0 +1,179 @@
+THIRD-PARTY SOFTWARE NOTICES AND INFORMATION
+
+CodeBrix.Audio.Vorbis is an Ogg Vorbis encoder for .NET: a managed wrapper
+together with the native codebrix_vorbis libraries it P/Invokes into. Two
+distinct things in this repository come from other people, and both are
+covered below:
+
+  1. THE VENDORED SOURCE. vorbis-native-tools/ogg/ and vorbis-native-tools/vorbis/
+     are unmodified copies of the Xiph.Org release tarballs of libogg and
+     libvorbis, committed to this repository so the native libraries can be
+     rebuilt from it alone. The tarballs themselves are kept in
+     vorbis-native-tools/upstream-downloads/, and their identity (URL, version,
+     SHA-256) is recorded in vorbis-native-tools/UPSTREAM.txt.
+
+  2. THE SHIPPED BINARIES. The package's runtimes/<rid>/native/ folders contain
+     libcodebrix_vorbis.so / libcodebrix_vorbis.dylib / codebrix_vorbis.dll,
+     each of which statically links libogg, libvorbis and libvorbisenc compiled
+     from exactly that source, together with a small C shim
+     (vorbis-native-tools/shim/) written for this repository.
+
+Both libraries are licensed under the BSD 3-Clause licence, reproduced in full
+below, which is compatible with this repository's own BSD 3-Clause licence.
+One libvorbis source file additionally preserves an older permissive notice
+(see entry 2); it too is reproduced below.
+
+HOW BSD-3-CLAUSE CLAUSE 2 IS SATISFIED
+    Clause 2 requires a binary distribution to reproduce the copyright notice
+    and the licence "in the documentation and/or other materials provided with
+    the distribution". Every native build copies libvorbis's COPYING file as
+    LICENSE-Vorbis.txt and libogg's COPYING file as LICENSE-Ogg.txt beside the
+    binary in runtimes/<rid>/native/, so both licence texts physically travel
+    inside the NuGet package next to every native library, on every platform -
+    in addition to this file.
+
+WHAT WAS MODIFIED
+    NOTHING. No file in vorbis-native-tools/ogg/ or vorbis-native-tools/vorbis/
+    has been edited, renamed, reformatted, added or deleted. If a build ever
+    needs a source change it goes in vorbis-native-tools/patches/ and is
+    applied to a scratch copy at build time, and this section must say so.
+
+WHAT IS NOT BUILT
+    libvorbisfile (vorbis/lib/vorbisfile.c) and the examples, tests and tools
+    in the vendored trees are vendored but never compiled. Decoding is the
+    managed decoder in CodeBrix.Audio.Core, which is not part of this
+    repository and carries its own notices.
+
+WHAT IS NOT THIRD-PARTY
+    The C shim (vorbis-native-tools/shim/), every build script, the managed
+    library and the tests are original work of this repository. The test
+    suite uses no recordings: every test signal is generated in code.
+
+Jeremy Ellis and contributors license the CodeBrix.Audio.Vorbis project to you
+under the terms set forth in the LICENSE file, which is located at the root of
+this repository.
+
+If you have any questions about any third-party code referenced here, or if you
+believe that any third-party code has been included in CodeBrix.Audio.Vorbis in
+error, please open a new issue at:
+https://github.com/ellisnet/CodeBrix.Audio.Vorbis/issues
+
+================================================================================
+
+1. libogg
+
+    Project:     libogg - the Ogg bitstream container library
+    Home:        https://xiph.org/ogg/
+    Source:      https://downloads.xiph.org/releases/ogg/
+                 (repository: https://gitlab.xiph.org/xiph/ogg)
+    Version:     1.3.6 (release tarball libogg-1.3.6.tar.xz)
+    Copyright:   Copyright (c) 2002, Xiph.org Foundation
+    License:     BSD-3-Clause
+    Vendored as: vorbis-native-tools/ogg/
+    Shipped as:  statically linked into every runtimes/<rid>/native/ binary;
+                 licence text beside it as LICENSE-Ogg.txt
+
+    Full license text (vorbis-native-tools/ogg/COPYING, verbatim):
+
+    Copyright (c) 2002, Xiph.org Foundation
+
+    Redistribution and use in source and binary forms, with or without
+    modification, are permitted provided that the following conditions
+    are met:
+
+    - Redistributions of source code must retain the above copyright
+    notice, this list of conditions and the following disclaimer.
+
+    - Redistributions in binary form must reproduce the above copyright
+    notice, this list of conditions and the following disclaimer in the
+    documentation and/or other materials provided with the distribution.
+
+    - Neither the name of the Xiph.org Foundation nor the names of its
+    contributors may be used to endorse or promote products derived from
+    this software without specific prior written permission.
+
+    THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+    ``AS IS'' AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+    LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
+    A PARTICULAR PURPOSE ARE DISCLAIMED.  IN NO EVENT SHALL THE FOUNDATION
+    OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+    SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+    LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+    DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+    THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+    (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+    OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+================================================================================
+
+2. libvorbis (including libvorbisenc)
+
+    Project:     libvorbis - the Vorbis audio codec reference library
+    Home:        https://xiph.org/vorbis/
+    Source:      https://downloads.xiph.org/releases/vorbis/
+                 (repository: https://gitlab.xiph.org/xiph/vorbis)
+    Version:     1.3.7 (release tarball libvorbis-1.3.7.tar.xz)
+    Copyright:   Copyright (c) 2002-2020 Xiph.org Foundation
+    License:     BSD-3-Clause
+    Vendored as: vorbis-native-tools/vorbis/
+    Shipped as:  libvorbis + libvorbisenc statically linked into every
+                 runtimes/<rid>/native/ binary; licence text beside it as
+                 LICENSE-Vorbis.txt
+
+    Full license text (vorbis-native-tools/vorbis/COPYING, verbatim):
+
+    Copyright (c) 2002-2020 Xiph.org Foundation
+
+    Redistribution and use in source and binary forms, with or without
+    modification, are permitted provided that the following conditions
+    are met:
+
+    - Redistributions of source code must retain the above copyright
+    notice, this list of conditions and the following disclaimer.
+
+    - Redistributions in binary form must reproduce the above copyright
+    notice, this list of conditions and the following disclaimer in the
+    documentation and/or other materials provided with the distribution.
+
+    - Neither the name of the Xiph.org Foundation nor the names of its
+    contributors may be used to endorse or promote products derived from
+    this software without specific prior written permission.
+
+    THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+    ``AS IS'' AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+    LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
+    A PARTICULAR PURPOSE ARE DISCLAIMED.  IN NO EVENT SHALL THE FOUNDATION
+    OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+    SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+    LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+    DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+    THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+    (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+    OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+    PRESERVED NOTICE INSIDE libvorbis: vorbis/lib/lpc.c, which is compiled into
+    every shipped binary, carries an older permissive notice from the earlier
+    LPC code it was derived from. Its condition is that the notice is not
+    removed, so it is reproduced here verbatim as well:
+
+    /* Copyright 1992, 1993, 1994 by Jutta Degener and Carsten Bormann,
+    Technische Universita"t Berlin
+
+    Any use of this software is permitted provided that this notice is not
+    removed and that neither the authors nor the Technische Universita"t
+    Berlin are deemed to have made any representations as to the
+    suitability of this software for any purpose nor are held responsible
+    for any defects of this software. THERE IS ABSOLUTELY NO WARRANTY FOR
+    THIS SOFTWARE.
+
+    As a matter of courtesy, the authors request to be informed about uses
+    this software has found, about bugs in this software, and about any
+    improvements that may be of general interest.
+
+    Berlin, 28.11.1994
+    Jutta Degener
+    Carsten Bormann
+
+================================================================================
+
+END OF THIRD-PARTY SOFTWARE NOTICES AND INFORMATION

@@ -1,0 +1,277 @@
+================================================================================
+vorbis-native-tools/BUILD-PROVENANCE.txt
+what was actually built, when, by what, and with what result
+================================================================================
+
+WHY THIS FILE EXISTS
+--------------------------------------------------------------------------------
+A binary in a package is anonymous. This file is how anyone later can tell which
+native library came from which source, which toolchain and which build machine.
+Every time a binary is adopted into ../src/CodeBrix.Audio.Vorbis/runtimes/<rid>/
+native/, its section here is updated from that build's output/<rid>/BUILD-INFO.txt.
+
+Common to every entry below
+--------------------------------------------------------------------------------
+  Source          : ogg/ (libogg 1.3.6) and vorbis/ (libvorbis 1.3.7) - the
+                    unmodified Xiph release tarballs (upstream-downloads/;
+                    sha256 5c8253428e18...1061 / b33cc4934322...954b; see
+                    UPSTREAM.txt), plus shim/codebrix_vorbis.c implementing the
+                    fixed contract shim/codebrix_vorbis.h (API version 1)
+  Compiled        : libogg bitwise.c framing.c; libvorbis lib/*.c incl.
+                    vorbisenc.c; NOT vorbisfile.c. All statically linked into ONE
+                    shared library per RID via shim/CMakeLists.txt.
+  Visibility      : -fvisibility=hidden for every object (+ --exclude-libs,ALL on
+                    Linux/Android); exports are EXACTLY the 11 functions of
+                    codebrix_vorbis.h - checked by every gate (missing AND extra)
+  Patches applied : NONE. patches/ is empty.
+  Shipped names   : libcodebrix_vorbis.so / codebrix_vorbis.dll /
+                    libcodebrix_vorbis.dylib - unversioned (SONAME/install name
+                    unversioned too), because DllImport("codebrix_vorbis") probes
+                    exactly those names
+  Licences beside : LICENSE-Vorbis.txt = licenses/LICENSE-Vorbis.txt, composed by
+  every binary      licenses/compose-license-vorbis.sh from vorbis/COPYING + a
+                    separator + the third-party notice PRESERVED in
+                    vorbis/lib/lpc.c (Jutta Degener and Carsten Bormann, TU Berlin
+                    1992-1994; the block "/* Some of these routines" ..
+                    "Carsten Bormann", lpc.c lines 17-41), whose condition is that
+                    it is not removed. LICENSE-Ogg.txt = ogg/COPYING verbatim.
+                    Identical on all nine RIDs (md5 of LICENSE-Vorbis.txt
+                    eaa25e8550ce001cf34b0311c13a870d). Every bash gate re-runs the
+                    generator and compares; the Windows gate checks the committed
+                    file and its COPYING prefix. .gitattributes keeps these texts
+                    byte-identical on Windows checkouts (-text).
+  Smoke test      : ../smoke-test.c, compiled for the target and run against the
+                    STAGED (stripped) file: api_version == 1, libVorbis 1.3.7
+                    version string, 1 s 440 Hz stereo 44.1 kHz q0.4 encode in 6
+                    uneven chunks, every Ogg page walked ("OggS" at 0, BOS on
+                    first page only, EOS on last page only, one serial, last
+                    granule == 44100), plus the contract's error paths and a
+                    headers-only stream that still ends in EOS. 47 checks.
+
+Linux (the three linux-* entries)
+--------------------------------------------------------------------------------
+  Route           : linux/build.sh <arch> -> container-build.sh inside
+                    codebrix-vorbis-build-<arch> (Containerfile.<arch>: the
+                    digest-pinned manylinux base + a toolchain PROBE; NOTHING is
+                    installed, so the image build also ran with --network none),
+                    run with --network none, --pull=never
+  Build host      : Dell Precision 7770, LMDE 7, x86_64, podman 5.4.2; arm64 and
+                    riscv64 under qemu-user emulation
+  cmake options   : -G "Unix Makefiles" -DCMAKE_BUILD_TYPE=Release (-O3 -DNDEBUG)
+                    CMAKE_C_FLAGS="-g -ffile-prefix-map=<src>=vorbis-native-tools
+                    -ffile-prefix-map=<build>=build"; the shim's CMakeLists adds
+                    -fPIC -fvisibility=hidden and links with --no-undefined
+                    --exclude-libs,ALL -z noexecstack --build-id=sha1;
+                    then strip --strip-unneeded
+  Reproducibility : all three Linux RIDs and android-arm64 were built twice on
+                    2026-10-10 (before and after the licence-file change); the
+                    shipped files were byte-identical both times.
+  Gate            : ELF class/machine, SONAME, no RPATH/RUNPATH/TEXTREL,
+                    GNU_STACK RW, exact export set, NEEDED system-only + ldd -r,
+                    glibc floor CHECKED, build-id equal stripped/unstripped,
+                    licence files exact, smoke test
+
+================================================================================
+linux-x64                                                         BUILT + PASSED
+================================================================================
+Built            : 2026-10-10 16:54:06 UTC
+Built by         : linux/build.sh -> container-build.sh (native x86_64 host)
+Network          : DISABLED during this build (interfaces: lo)
+Derived image    : codebrix-vorbis-build-x86_64
+Base image       : quay.io/pypa/manylinux_2_28_x86_64@sha256:a61875a2f84cab7df8de222ff12cabc08ff86eb4ad402ac90ba7bdaed9600cca
+Container OS     : AlmaLinux 8.10 (Cerulean Leopard), ldd (GNU libc) 2.28
+Compiler         : cc (GCC) 14.2.1 20250110 (Red Hat 14.2.1-11)
+Linker           : GNU ld version 2.41-4.el8_10.1
+cmake / make     : cmake version 4.4.0 / GNU Make 4.2.1 (the base image's own)
+File             : libcodebrix_vorbis.so (SONAME libcodebrix_vorbis.so)
+Build-id         : b1d12aff97f440459c7d2d15b35aff703efd17c6
+Size (stripped)  : 964880 bytes
+Size (unstripped): 1933064 bytes -> unstripped/linux-x64/libcodebrix_vorbis.so
+SHA256           : 816373913d74adc482a29812a2745cf434645afc5c1b7ca6f4dc02d20dcfcdae
+SHA256 unstripped: 33d2afc52f54101a9f90809ce2c7984b30fc1a708154070baf0c716d1c5c6194
+glibc floor      : 2.14 (allowed <= 2.28)
+Dynamic deps     : libc.so.6 libm.so.6
+Smoke test       : PASSED (in the container)
+
+================================================================================
+linux-arm64                                                       BUILT + PASSED
+================================================================================
+Built            : 2026-10-10 16:54:09 UTC
+Built by         : linux/build.sh -> container-build.sh (qemu-aarch64 emulation)
+Network          : DISABLED during this build (interfaces: lo)
+Derived image    : codebrix-vorbis-build-aarch64
+Base image       : quay.io/pypa/manylinux_2_28_aarch64@sha256:162c81dfd3efc710732a571717d3c916a6945ebf279e879ddee3243af96fe46f
+Container OS     : AlmaLinux 8.10 (Cerulean Leopard), ldd (GNU libc) 2.28
+Compiler         : cc (GCC) 14.2.1 20250110 (Red Hat 14.2.1-11)
+Linker           : GNU ld version 2.41-4.el8_10.1
+cmake / make     : cmake version 4.4.0 / GNU Make 4.2.1
+File             : libcodebrix_vorbis.so (SONAME libcodebrix_vorbis.so)
+Build-id         : f189624875e9c501c248e35e7e6188b43896dc66
+Size (stripped)  : 985392 bytes
+Size (unstripped): 1988216 bytes -> unstripped/linux-arm64/libcodebrix_vorbis.so
+SHA256           : 01349c1eeaaf5c4d25377f41fdff7b9ae80bc76fac5b49fa0c3cbe203690dfd0
+SHA256 unstripped: f775cb897897cae7e4aa04a9cf09c07056b8bdb2acca396c6b15247966be2145
+glibc floor      : 2.17 (allowed <= 2.28)
+Dynamic deps     : libc.so.6 libm.so.6
+Smoke test       : PASSED (in the container, emulated)
+
+================================================================================
+linux-riscv64                                                     BUILT + PASSED
+================================================================================
+Built            : 2026-10-10 16:54:53 UTC
+Built by         : linux/build.sh -> container-build.sh (qemu-riscv64 emulation)
+Network          : DISABLED during this build (interfaces: lo)
+Derived image    : codebrix-vorbis-build-riscv64
+Base image       : quay.io/pypa/manylinux_2_39_riscv64@sha256:04b3acc69a6cebb10ac1252587d202acce6445d91c783d3f92229bb2b2483069
+Container OS     : Rocky Linux 10.2 (Red Quartz), ldd (GNU libc) 2.39
+Compiler         : cc (GCC) 14.3.1 20251022 (Red Hat 14.3.1-4)
+Linker           : GNU ld version 2.41-63.el10
+cmake / make     : cmake version 4.4.0 / GNU Make 4.4.1
+File             : libcodebrix_vorbis.so (SONAME libcodebrix_vorbis.so)
+Build-id         : 090824282064dd1ba6f33951fd8ba7a5623727a8
+Size (stripped)  : 829768 bytes
+Size (unstripped): 1631960 bytes -> unstripped/linux-riscv64/libcodebrix_vorbis.so
+SHA256           : 3f1c7c895a530a1d4035534f5c2bb9918379ff409f0313a02c1039d1b136d133
+SHA256 unstripped: affb5491dbba35e7ce4d6befef10cb8d2664d42bc2e7620589dd728660586593
+glibc floor      : 2.27 (allowed <= 2.39)
+Dynamic deps     : libc.so.6 libm.so.6
+Smoke test       : PASSED (in the container, emulated)
+
+Android (the two android-* entries)
+--------------------------------------------------------------------------------
+  Route           : android/build.sh on the Linux laptop (host cmake 3.31.6 +
+                    GNU Make; NDK 30.0.16248370 android.toolchain.cmake,
+                    ANDROID_PLATFORM=android-33)
+  Flags           : CMAKE_C_FLAGS="-g -ffile-prefix-map=... -fdebug-compilation-
+                    dir=build" on top of the NDK's Release flags; linker
+                    -Wl,-z,max-page-size=16384 -Wl,-z,common-page-size=16384
+                    -Wl,--build-id=sha1 (+ the shim's --no-undefined
+                    --exclude-libs,ALL -z noexecstack); llvm-strip --strip-unneeded
+  Gate            : android/layout-check.c (ABI static asserts, cross-compiled
+                    for the ABI), ELF64/machine, every PT_LOAD 16 KB aligned, no
+                    W+X segment, Android API note == 33, NEEDED libc/libm/libdl
+                    only, no TEXTREL/RPATH/RUNPATH, SONAME, exact exports (on the
+                    stripped AND unstripped file), build-id equal, licences exact,
+                    and - with DEVICE_ARM64 / DEVICE_X64 set - the smoke test run
+                    on a real device over adb (/data/local/tmp, removed after)
+
+================================================================================
+android-arm64                                                     BUILT + PASSED
+================================================================================
+Built            : 2026-10-10 16:55:35 UTC
+ABI / API        : arm64-v8a / 33
+Compiler         : Android (16134705, +pgo, +bolt, +lto, +mlgo, based on r574158c) clang version 21.0.0
+File             : libcodebrix_vorbis.so (SONAME libcodebrix_vorbis.so)
+Build-id         : 6b897a3ad6eee637c242e9f331814a29a46ab9ba
+Size (stripped)  : 756352 bytes
+Size (unstripped): 1573496 bytes -> unstripped/android-arm64/libcodebrix_vorbis.so
+SHA256           : 59be9a15bdfa77d4f82db827f3016732e40782d453e70370435be98f3f873c89
+SHA256 unstripped: ee946c76cf80040506839e99425ec56830c0ef1f64adaf143a2270f5e1a46457
+PT_LOAD align    : 0x4000 x4 (16 KB page-size ready)
+NEEDED           : libc.so libdl.so libm.so
+Device smoke test: PASSED on 98271FFBA0048D (Pixel 4 XL, arm64-v8a), 2026-10-10
+
+================================================================================
+android-x64                                                       BUILT + PASSED
+================================================================================
+Built            : 2026-10-10 16:55:37 UTC
+ABI / API        : x86_64 / 33
+Compiler         : Android (16134705, +pgo, +bolt, +lto, +mlgo, based on r574158c) clang version 21.0.0
+File             : libcodebrix_vorbis.so (SONAME libcodebrix_vorbis.so)
+Build-id         : ac0aa088ce47bfa6036f723156e487f87b3aa5a6
+Size (stripped)  : 817080 bytes
+Size (unstripped): 1572928 bytes -> unstripped/android-x64/libcodebrix_vorbis.so
+SHA256           : da9adae6728d5486f1aaee2ef0e6ca29d7f35068a112f572dfcdc7a0074453f0
+SHA256 unstripped: 4e2bda4e38a2af8349c1b59f0898884273e6d416e00f0252cb1f04350eba5d50
+PT_LOAD align    : 0x4000 x4 (16 KB page-size ready)
+NEEDED           : libc.so libdl.so libm.so
+Device smoke test: PASSED on 192.168.86.225:5555 (HP laptop, model 87FE, x86_64), 2026-10-10
+
+Windows (the two win-* entries) - scripts UNRUN
+--------------------------------------------------------------------------------
+  Route           : windows/build-win-x64.ps1 / build-win-arm64.ps1 (dot-source
+                    build-common.ps1): MSVC through CMake's Visual Studio
+                    generator, -A x64 / -A ARM64, CMAKE_MSVC_RUNTIME_LIBRARY=
+                    MultiThreaded (static CRT), /O2 /Ob2 /DNDEBUG /Z7, link /DEBUG
+                    /OPT:REF /OPT:ICF /PDBALTPATH:%_PDB%. win-arm64 route Auto:
+                    native on an ARM64 host, cross (x64_arm64) on an x64 host.
+  Gate            : PE machine (header + dumpbin), exact exports, dependents
+                    KERNEL32.dll only (no VC runtime), licences, LoadLibrary smoke
+                    test by full path. Adopts into src/ only on a COMPLETE gate
+                    (or -AdoptCrossBuild for a cross-built win-arm64).
+
+================================================================================
+win-x64                                  NOT YET BUILT - Jeremy builds on Windows
+================================================================================
+Built            : (pending)  windows\build-win-x64.ps1 on an x64 Windows machine
+Build host       :
+Visual Studio/cl :
+cmake            :
+Size             :
+SHA256           :
+PDB              :   -> unstripped/win-x64/codebrix_vorbis.pdb
+Dependents       :
+Smoke test       :
+
+================================================================================
+win-arm64                                NOT YET BUILT - Jeremy builds on Windows
+================================================================================
+Built            : (pending)  windows\build-win-arm64.ps1 (Native on ARM64, or
+                   CrossFromX64 on x64 - say which; a cross build's smoke test is UNRUN)
+Build host       :
+Visual Studio/cl :
+cmake            :
+Size             :
+SHA256           :
+PDB              :   -> unstripped/win-arm64/codebrix_vorbis.pdb
+Dependents       :
+Smoke test       :
+
+macOS (the two osx-* entries) - scripts UNRUN
+--------------------------------------------------------------------------------
+  Route           : macos/build-osx-arm64.sh / build-osx-x64.sh (source
+                    build-common.sh): Apple clang via CMake "Unix Makefiles",
+                    CMAKE_OSX_ARCHITECTURES=<arm64|x86_64>, deployment target
+                    11.0 (arm64) / 10.14 (x64) - the CodeBrix.Sdl3 floors; -g,
+                    dsymutil, strip -x, then ad-hoc codesign; thin dylibs, never
+                    universal.
+  Gate            : file + lipo (thin, right arch), exact exports, install name
+                    @rpath/libcodebrix_vorbis.dylib, system-only dependencies, no
+                    LC_RPATH, minos CHECKED, no -Wunguarded-availability, valid
+                    signature, licences, LC_UUID equal stripped/unstripped,
+                    dlopen smoke test. Adopts into src/ only on a COMPLETE gate.
+
+================================================================================
+osx-arm64                                    NOT YET BUILT - Jeremy builds on a Mac
+================================================================================
+Built            : (pending)  macos/build-osx-arm64.sh on an Apple Silicon Mac
+Build host       :
+Compiler / SDK   :
+cmake            :
+Minimum macOS    : 11.0 (checked)
+Size (signed)    :
+SHA256           :
+LC_UUID          :
+Unstripped       :   -> unstripped/osx-arm64/libcodebrix_vorbis.dylib
+Smoke test       :
+
+================================================================================
+osx-x64                                      NOT YET BUILT - Jeremy builds on a Mac
+================================================================================
+Built            : (pending)  macos/build-osx-x64.sh on an Intel Mac, or on Apple
+                   Silicon with Rosetta 2 installed (needed to RUN the smoke test)
+Build host       :
+Compiler / SDK   :
+cmake            :
+Minimum macOS    : 10.14 (checked)
+Size (signed)    :
+SHA256           :
+LC_UUID          :
+Unstripped       :   -> unstripped/osx-x64/libcodebrix_vorbis.dylib
+Smoke test       :
+
+Host build (NOT shipped)
+--------------------------------------------------------------------------------
+  output/host/libcodebrix_vorbis.so - build-host.sh with the laptop's own cmake
+  3.31.6 + gcc 14.2.0 (Debian), for running the managed tests on a dev box. Never
+  copied into src/; its glibc floor is the dev box's.

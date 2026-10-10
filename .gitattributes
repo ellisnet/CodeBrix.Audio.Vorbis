@@ -29,3 +29,32 @@ src/CodeBrix.Audio.Vorbis/runtimes/**/*.dylib               binary
 vorbis-native-tools/unstripped/**/*.so                      binary
 vorbis-native-tools/unstripped/**/*.dylib                   binary
 vorbis-native-tools/unstripped/**/*.pdb                     binary
+
+# ------------------------------------------------------------------------------
+# Everything else: LF on every platform. A Windows checkout with
+# core.autocrlf=true would otherwise rewrite every text file to CRLF, and the
+# first solution open / `dotnet test` there misbehaves (byte-compared fixtures,
+# shell scripts, vendored upstream sources). The committed blobs are LF; this
+# only stops a checkout from changing them.
+# ------------------------------------------------------------------------------
+* text=auto eol=lf
+
+# Never touched by newline translation, wherever they live.
+*.png   binary
+*.jpg   binary
+*.ico   binary
+*.so    binary
+*.dylib binary
+*.dll   binary
+*.pdb   binary
+*.a     binary
+*.lib   binary
+*.nupkg binary
+*.xz    binary
+*.gz    binary
+*.zip   binary
+*.wav   binary
+*.mp3   binary
+*.flac  binary
+*.ogg   binary
+*.opus  binary

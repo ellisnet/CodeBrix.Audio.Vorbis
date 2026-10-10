@@ -2,8 +2,11 @@
 # build-win-x64.ps1 - build codebrix_vorbis.dll for the win-x64 runtime identifier
 # =============================================================================================
 #
-#   NEVER YET RUN. Written on Linux on 2026-10-10. Expect to fix something on the first real
-#   run; fix it IN THE SCRIPT (or build-common.ps1) and record it in ..\BUILD-PROVENANCE.txt.
+#   Written on Linux on 2026-10-10. FIRST RUN the same day on Jeremy's x64 Windows 11 machine
+#   (Visual Studio Professional 2026 18.10.3, cl 19.51, cmake 4.4.3): built, passed the whole
+#   gate including the smoke test, and was adopted. The one first-run fix (the /PDBALTPATH
+#   value) is in build-common.ps1; see ..\BUILD-PROVENANCE.txt. If something breaks on another
+#   machine, fix it IN THE SCRIPT (or build-common.ps1) and record it there.
 #
 # USAGE (from any PowerShell prompt - the script sets up the compiler environment itself):
 #

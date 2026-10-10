@@ -2,12 +2,17 @@
 # build-common.ps1 - shared machinery for the Windows codebrix_vorbis builds (win-x64, win-arm64)
 # =============================================================================================
 #
-#   NEVER YET RUN. Written on Linux on 2026-10-10, modelled closely on CodeBrix.Sdl3's
+#   Written on Linux on 2026-10-10, modelled closely on CodeBrix.Sdl3's
 #   sdl3-native-tools\windows\build-common.ps1 (which carries the first-run fixes of the
 #   llama-native-tools and dav1d-native-tools Windows scripts: the dumpbin export parser, the cl
 #   banner capture, choosing the Visual Studio instance by its own filesystem, the PATH trap,
-#   the stderr-as-ErrorRecord trap of Windows PowerShell 5.1). Expect to fix something on the
-#   first real run; fix it IN THE SCRIPT and record it in ..\BUILD-PROVENANCE.txt.
+#   the stderr-as-ErrorRecord trap of Windows PowerShell 5.1).
+#
+#   FIRST RUN 2026-10-10 on Jeremy's x64 Windows 11 machine (Visual Studio Professional 2026
+#   18.10.3, cl 19.51, cmake 4.4.3, PowerShell 7.6): win-x64 and win-arm64 (cross) both built and
+#   passed every static gate check unchanged; the one fix was the /PDBALTPATH value (see
+#   Get-VorbisWindowsCmakeOptions). Recorded in ..\BUILD-PROVENANCE.txt. If something else breaks
+#   on another machine, fix it IN THE SCRIPT and record it there too.
 #
 # Dot-source this from an architecture script; do not run it directly.
 #
@@ -55,11 +60,19 @@ function Read-Pins {
 # The CMake options for Windows (MSVC through CMake's Visual Studio generator, -A x64 / -A ARM64):
 #   CMAKE_MSVC_RUNTIME_LIBRARY=MultiThreaded   STATIC CRT: the DLL imports KERNEL32.dll only and
 #                                              no user ever needs a Visual C++ Redistributable
-#   /Z7 + /DEBUG ... /PDBALTPATH:%_PDB%        a .pdb for crash triage (Sdl3's recipe: /Z7 keeps
+#   /Z7 + /DEBUG ... /PDBALTPATH:codebrix_vorbis.pdb
+#                                              a .pdb for crash triage (Sdl3's recipe: /Z7 keeps
 #                                              debug info in the objects, /DEBUG writes the pdb but
 #                                              would switch /OPT:REF and /OPT:ICF off, so both are
-#                                              restored; /PDBALTPATH records only the file name).
+#                                              restored; /PDBALTPATH records only the file name, so
+#                                              no build-machine path ends up in the DLL).
 #                                              Code generation is unchanged.
+# FIRST-RUN FIX (2026-10-10): the recipe originally said /PDBALTPATH:%_PDB% (the linker's own
+# "expand to the pdb file name" token). CMake's Visual Studio generator writes a % into the
+# .vcxproj as %%, MSBuild hands link.exe /PDBALTPATH:%%_PDB%%, and the linker expands the inner
+# %_PDB% only, so the DLL's CodeView record named its pdb "%codebrix_vorbis.pdb%" - percent signs
+# included - which no debugger or symbol server would match to the kept codebrix_vorbis.pdb.
+# The file name is fixed (the target is called codebrix_vorbis), so it is spelled out instead.
 # CMAKE_C_FLAGS_RELEASE is CMake's MSVC default ("/O2 /Ob2 /DNDEBUG") plus /Z7. The shim's
 # CMakeLists adds /W4 for the shim and /w for the upstream sources. Exports come ONLY from the
 # __declspec(dllexport) in codebrix_vorbis.h; no .def file is used, so libogg/libvorbis export
@@ -69,7 +82,7 @@ function Get-VorbisWindowsCmakeOptions {
     return @(
         '-DCMAKE_MSVC_RUNTIME_LIBRARY=MultiThreaded',
         '-DCMAKE_C_FLAGS_RELEASE=/O2 /Ob2 /DNDEBUG /Z7',
-        '-DCMAKE_SHARED_LINKER_FLAGS_RELEASE=/INCREMENTAL:NO /DEBUG /OPT:REF /OPT:ICF /PDBALTPATH:%_PDB%'
+        '-DCMAKE_SHARED_LINKER_FLAGS_RELEASE=/INCREMENTAL:NO /DEBUG /OPT:REF /OPT:ICF /PDBALTPATH:codebrix_vorbis.pdb'
     )
 }
 
@@ -582,7 +595,13 @@ equivalent "MSVC Build Tools for ARM64/ARM64EC" in newer Visual Studio - to that
     Copy-Item -LiteralPath (Join-Path $toolsDir "licenses\$($pins['LICENSE_VORBIS_NAME'])") -Destination (Join-Path $outDir $pins['LICENSE_VORBIS_NAME'])
     Copy-Item -LiteralPath (Join-Path $toolsDir "$($pins['OGG_DIR'])\COPYING")    -Destination (Join-Path $outDir $pins['LICENSE_OGG_NAME'])
     Copy-Item -LiteralPath (Join-Path $buildDir 'build.log') -Destination (Join-Path $outDir 'build.log')
+    # The gate's smoke-test.exe (compiled for the TARGET) is kept beside the output too, as
+    # ..\output\README.txt says: $BuildRoot defaults to %TEMP% and may be cleaned, and for a
+    # cross-built win-arm64 this is the program that finishes the gate on an ARM64 machine.
+    # (Added after the first run on 2026-10-10; that run's copies were placed by hand.)
+    Copy-Item -LiteralPath $smokeExe -Destination (Join-Path $outDir 'smoke-test.exe')
     Write-Host "  $($pins['LICENSE_VORBIS_NAME']) = licenses\LICENSE-Vorbis.txt (vorbis\COPYING + lpc.c notice), $($pins['LICENSE_OGG_NAME']) = ogg\COPYING"
+    Write-Host "  smoke-test.exe (target architecture) kept in output\$Rid\"
     Write-Host ''
 
     # --- 4. the gate --------------------------------------------------------------------------------

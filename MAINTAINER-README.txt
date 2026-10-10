@@ -57,10 +57,17 @@ vorbis-native-tools/                 everything that builds the natives (see
 
 Root files: CodeBrix.Audio.Vorbis.slnx, global.json, LICENSE, README.md,
 AGENT-README.txt, MAINTAINER-README.txt, EXTRAS-README.txt, README-INDEX.txt,
-THIRD-PARTY-NOTICES.txt, icon-codebrix-128.png, .gitignore, and the 8 AI-agent
-pointer stubs (AGENTS.md, CLAUDE.md, .clinerules, .cursorrules, .windsurfrules,
-.cursor/rules/agent-readme.mdc, .github/copilot-instructions.md,
+THIRD-PARTY-NOTICES.txt, icon-codebrix-128.png, .gitignore, .gitattributes, and
+the 8 AI-agent pointer stubs (AGENTS.md, CLAUDE.md, .clinerules, .cursorrules,
+.windsurfrules, .cursor/rules/agent-readme.mdc, .github/copilot-instructions.md,
 .junie/guidelines.md - byte-identical to the family canonical copies).
+
+.gitattributes marks src/CodeBrix.Audio.Vorbis/runtimes/** -text (and the
+binaries there and under vorbis-native-tools/unstripped/ as binary). The
+licence texts beside every native are packed into the package exactly as they
+sit on disk, and without that rule a Windows checkout with core.autocrlf=true
+rewrote them with CRLF, so a package built on Windows carried different licence
+bytes for the Linux and Android RIDs than one built on Linux. Do not remove it.
 
 The .slnx "Solution Items" folder lists the canonical ten files: .gitignore,
 AGENT-README.txt, EXTRAS-README.txt, global.json, icon-codebrix-128.png,

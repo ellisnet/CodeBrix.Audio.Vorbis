@@ -19,11 +19,20 @@ The build scripts copy the twin here automatically when they adopt a binary
 
     sha256sum */libcodebrix_vorbis.so > SHA256SUMS      # (and any .dylib/.pdb)
 
-Verify a twin: its sha256 is the "SHA256 unstripped" line of that RID in
-../BUILD-PROVENANCE.txt, and its build-id equals the shipped file's:
+Verify a twin: its sha256 is the "SHA256 unstripped" (or "PDB") line of that
+RID in ../BUILD-PROVENANCE.txt, and its build-id equals the shipped file's:
 
     readelf -n <rid>/libcodebrix_vorbis.so | grep 'Build ID'
     readelf -n ../../src/CodeBrix.Audio.Vorbis/runtimes/<rid>/native/libcodebrix_vorbis.so | grep 'Build ID'
+
+For Windows the link is the PDB's GUID + age: the DLL's CodeView (RSDS) record
+names "codebrix_vorbis.pdb" with a GUID, and the .pdb carries the same GUID.
+From a developer prompt:
+
+    dumpbin /headers ../../src/CodeBrix.Audio.Vorbis/runtimes/<rid>/native/codebrix_vorbis.dll | findstr RSDS
+
+A debugger (WinDbg, Visual Studio) given this folder as a symbol path matches
+the two by that GUID; nothing needs renaming.
 
 STORED SO FAR (build-ids verified equal to the shipped twins by the gates, 2026-10-10):
 
@@ -32,3 +41,7 @@ STORED SO FAR (build-ids verified equal to the shipped twins by the gates, 2026-
   linux-riscv64  090824282064dd1ba6f33951fd8ba7a5623727a8
   android-arm64  6b897a3ad6eee637c242e9f331814a29a46ab9ba
   android-x64    ac0aa088ce47bfa6036f723156e487f87b3aa5a6
+
+  (PDB GUIDs, from the shipped DLLs' RSDS records, 2026-10-10)
+  win-x64        {804FDF9A-1170-436B-AE59-23F2847EEBCC} age 1
+  win-arm64      {2AE59A10-CD61-4D78-9170-E9806BD5867F} age 1

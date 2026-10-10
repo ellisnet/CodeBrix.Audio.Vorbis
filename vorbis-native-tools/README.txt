@@ -42,16 +42,21 @@ WHAT BUILDS WHERE
   linux-riscv64  linux/build.sh riscv64          ditto (+ qemu binfmt)   built here
   android-arm64  android/build.sh arm64          Linux/macOS + NDK 30    built here
   android-x64    android/build.sh x64            Linux/macOS + NDK 30    built here
-  win-x64        windows/build-win-x64.ps1       x64 Windows + VS C++    Jeremy (UNRUN)
-  win-arm64      windows/build-win-arm64.ps1     ARM64 Windows (or x64,  Jeremy (UNRUN)
-                                                 cross; smoke test unrun)
+  win-x64        windows/build-win-x64.ps1       x64 Windows + VS C++    built (Jeremy's x64 box)
+  win-arm64      windows/build-win-arm64.ps1     ARM64 Windows (or x64,  cross-built there;
+                                                 cross; smoke test unrun) smoke test UNRUN
   osx-arm64      macos/build-osx-arm64.sh        Apple Silicon Mac       Jeremy (UNRUN)
   osx-x64        macos/build-osx-x64.sh          Intel Mac, or Apple     Jeremy (UNRUN)
                                                  Silicon + Rosetta 2
   (host)         build-host.sh                   this Linux dev box      NOT shipped
 
-The Windows and macOS scripts were written on Linux and have NEVER RUN. Expect
-to fix something on the first run; fix it in the script and record it in
+The Windows scripts were written on Linux and first ran on 2026-10-10 on
+Jeremy's x64 Windows 11 machine (Visual Studio 2026, cmake 4.4.3); what that run
+found and changed is in BUILD-PROVENANCE.txt. win-arm64 was cross-built there
+with -AdoptCrossBuild, so its smoke test is still UNRUN - finish it on an ARM64
+Windows device (Surface Pro X) as build-win-arm64.ps1's header describes. The
+macOS scripts were also written on Linux and have NEVER RUN. Expect to fix
+something on their first run; fix it in the script and record it in
 BUILD-PROVENANCE.txt.
 
 HOW TO REBUILD
@@ -88,8 +93,13 @@ THE LICENCE FILES (identical on all nine RIDs)
                       `compose-license-vorbis.sh --check` before copying and
                       compare the result again in the gate; the Windows gate
                       checks the copy equals the committed file and starts with
-                      vorbis/COPYING. .gitattributes marks the texts -text so a
-                      Windows checkout cannot change their bytes.
+                      vorbis/COPYING. .gitattributes here marks the SOURCE texts
+                      -text, and the repository-root .gitattributes marks the
+                      ADOPTED copies (src/CodeBrix.Audio.Vorbis/runtimes/**)
+                      -text, so no checkout can change their bytes - without the
+                      root rule a Windows checkout (core.autocrlf=true) rewrote
+                      the adopted copies with CRLF and a package built there
+                      shipped different licence bytes per RID.
 
 FILES
 --------------------------------------------------------------------------------

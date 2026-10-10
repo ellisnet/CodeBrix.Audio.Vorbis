@@ -1,0 +1,31 @@
+# ==============================================================================
+# .gitattributes (repository root)
+# ==============================================================================
+#
+# The native libraries and the two licence texts beside each of them, under
+# src/CodeBrix.Audio.Vorbis/runtimes/<rid>/native/, are packed into the NuGet
+# package exactly as they are on disk. They must be byte-identical on every
+# runtime identifier and on every checkout, whichever operating system did the
+# checkout and whichever one runs `dotnet pack`. With core.autocrlf=true (the
+# Git for Windows default) and no rule here, a Windows checkout rewrote the
+# LICENSE-Vorbis.txt / LICENSE-Ogg.txt copies with CRLF line endings, so a
+# package built on Windows shipped different licence bytes for the Linux and
+# Android RIDs than one built on Linux. -text switches every conversion off.
+#
+# vorbis-native-tools/.gitattributes protects the SOURCES of those texts
+# (licenses/LICENSE-Vorbis.txt, ogg/COPYING, vorbis/COPYING) the same way; this
+# rule protects the adopted copies that ship.
+#
+# The binaries are marked explicitly too, so no diff or merge driver ever
+# treats them as text.
+# ==============================================================================
+
+src/CodeBrix.Audio.Vorbis/runtimes/**                       -text
+src/CodeBrix.Audio.Vorbis/runtimes/**/*.dll                 binary
+src/CodeBrix.Audio.Vorbis/runtimes/**/*.so                  binary
+src/CodeBrix.Audio.Vorbis/runtimes/**/*.dylib               binary
+
+# The committed pre-strip twins (vorbis-native-tools/unstripped/<rid>/).
+vorbis-native-tools/unstripped/**/*.so                      binary
+vorbis-native-tools/unstripped/**/*.dylib                   binary
+vorbis-native-tools/unstripped/**/*.pdb                     binary

@@ -38,8 +38,13 @@ Common to every entry below
                     Identical on all nine RIDs (md5 of LICENSE-Vorbis.txt
                     eaa25e8550ce001cf34b0311c13a870d). Every bash gate re-runs the
                     generator and compares; the Windows gate checks the committed
-                    file and its COPYING prefix. .gitattributes keeps these texts
-                    byte-identical on Windows checkouts (-text).
+                    file and its COPYING prefix. Two .gitattributes files keep
+                    the texts byte-identical on every checkout: vorbis-native-
+                    tools/.gitattributes marks the sources -text, and the
+                    repository-root .gitattributes (added 2026-10-10, after the
+                    first Windows checkout was found to have rewritten the
+                    adopted Linux/Android copies with CRLF) marks the adopted
+                    copies under src/CodeBrix.Audio.Vorbis/runtimes/** -text.
   Smoke test      : ../smoke-test.c, compiled for the target and run against the
                     STAGED (stripped) file: api_version == 1, libVorbis 1.3.7
                     version string, 1 s 440 Hz stereo 44.1 kHz q0.4 encode in 6
@@ -187,45 +192,109 @@ PT_LOAD align    : 0x4000 x4 (16 KB page-size ready)
 NEEDED           : libc.so libdl.so libm.so
 Device smoke test: PASSED on 192.168.86.225:5555 (HP laptop, model 87FE, x86_64), 2026-10-10
 
-Windows (the two win-* entries) - scripts UNRUN
+Windows (the two win-* entries)
 --------------------------------------------------------------------------------
   Route           : windows/build-win-x64.ps1 / build-win-arm64.ps1 (dot-source
                     build-common.ps1): MSVC through CMake's Visual Studio
                     generator, -A x64 / -A ARM64, CMAKE_MSVC_RUNTIME_LIBRARY=
-                    MultiThreaded (static CRT), /O2 /Ob2 /DNDEBUG /Z7, link /DEBUG
-                    /OPT:REF /OPT:ICF /PDBALTPATH:%_PDB%. win-arm64 route Auto:
-                    native on an ARM64 host, cross (x64_arm64) on an x64 host.
+                    MultiThreaded (static CRT), /O2 /Ob2 /DNDEBUG /Z7, link
+                    /INCREMENTAL:NO /DEBUG /OPT:REF /OPT:ICF
+                    /PDBALTPATH:codebrix_vorbis.pdb. win-arm64 route Auto: native
+                    on an ARM64 host, cross (x64_arm64) on an x64 host.
+  Build host      : Jeremy's x64 desktop - Windows 11 Pro 10.0.26300 (AMD64),
+                    Visual Studio Professional 2026 18.10.3 [18.10.12224.181] at
+                    C:\Program Files\Microsoft Visual Studio\18\Professional,
+                    MSVC toolset 14.51.36231 (cl 19.51.36260), Windows SDK
+                    10.0.26100.0, cmake 4.4.3 (Kitware, on PATH; generator
+                    "Visual Studio 18 2026"), PowerShell 7.6.6. Scripts run as
+                    pwsh -NoProfile -ExecutionPolicy Bypass -File <script>.
+  First run       : 2026-10-10. Both scripts configured, built, and passed every
+                    static gate check UNCHANGED on the first attempt. ONE fix was
+                    then made and both RIDs rebuilt with it:
+                      /PDBALTPATH:%_PDB% -> /PDBALTPATH:codebrix_vorbis.pdb
+                    CMake's Visual Studio generator writes a % into the .vcxproj
+                    as %%, so link.exe received /PDBALTPATH:%%_PDB%% and the
+                    first DLLs' CodeView (RSDS) records named the pdb
+                    "%codebrix_vorbis.pdb%" - percent signs included - which no
+                    debugger would have matched to unstripped/<rid>/
+                    codebrix_vorbis.pdb. The name is fixed, so it is now spelled
+                    out; the records below are from the rebuilt files and read
+                    "codebrix_vorbis.pdb". Code generation was unaffected.
+                    A second, non-functional change followed the run: the
+                    collect step now also keeps the gate's smoke-test.exe in
+                    output/<rid>/ (the copies for this run were placed by hand).
+  Build warnings  : per RID, 5 x MSBuild MSB8029 ("Intermediate directory ...
+                    under the Temporary directory") because -BuildRoot defaults
+                    to %TEMP% - every build is a clean build, so it is moot -
+                    and 2 x cl D9025 "overriding '/W1' with '/w'" (the
+                    CMakeLists' /w for the upstream objects). Zero C.... or
+                    LNK.... warnings.
+  PE facts        : PE32+, linker 14.51, DllCharacteristics 0x0160
+                    (HIGH_ENTROPY_VA, DYNAMIC_BASE, NX_COMPAT), /GS on every
+                    object, not Authenticode-signed; the pdb is referenced by
+                    bare file name, so no build-machine path is in the DLL.
   Gate            : PE machine (header + dumpbin), exact exports, dependents
                     KERNEL32.dll only (no VC runtime), licences, LoadLibrary smoke
                     test by full path. Adopts into src/ only on a COMPLETE gate
                     (or -AdoptCrossBuild for a cross-built win-arm64).
 
 ================================================================================
-win-x64                                  NOT YET BUILT - Jeremy builds on Windows
+win-x64                                                           BUILT + PASSED
 ================================================================================
-Built            : (pending)  windows\build-win-x64.ps1 on an x64 Windows machine
-Build host       :
-Visual Studio/cl :
-cmake            :
-Size             :
-SHA256           :
-PDB              :   -> unstripped/win-x64/codebrix_vorbis.pdb
-Dependents       :
-Smoke test       :
+Built            : 2026-10-10 17:37:40 UTC (32 s)
+Built by         : windows\build-win-x64.ps1 (route: native, x64 host)
+Build host       : the x64 desktop above (vcvarsall.bat x64)
+Visual Studio/cl : Visual Studio Professional 2026 18.10.3 / cl 19.51.36260 for x64
+cmake            : 4.4.3, generator "Visual Studio 18 2026" -A x64,
+                   CMAKE_GENERATOR_INSTANCE = the instance above
+File             : codebrix_vorbis.dll - PE32+ x64 (machine 0x8664), linker 14.51,
+                   OS/subsystem version 6.00, timestamp 0x6ACA7802
+Size             : 868352 bytes
+SHA256           : e8a0a148950971a93b3fcaf8d5c3eae3b2616cb7aaa7af8a6d1c4e03b4cc8921
+PDB              : codebrix_vorbis.pdb, 4321280 bytes -> unstripped/win-x64/codebrix_vorbis.pdb
+                   sha256 4abe9700f45e67b64b35ec20373f2185d40068e4f368638483abcb6ed216cd4e
+                   RSDS GUID {804FDF9A-1170-436B-AE59-23F2847EEBCC} age 1
+Exports          : exactly the 11 codebrix_vorbis_* functions
+Dependents       : KERNEL32.dll (static CRT; no Visual C++ Redistributable)
+Smoke test       : PASSED on the build host (47 checks, SMOKE TEST PASSED, exit 0)
+Managed proof    : dotnet test (xUnit v3, 83 tests) passed on the build host
+                   against this exact file, loaded through the library's own
+                   resolver from runtimes/win-x64/native/, 2026-10-10
 
 ================================================================================
-win-arm64                                NOT YET BUILT - Jeremy builds on Windows
+win-arm64                       BUILT (cross) - STATIC GATE PASSED, SMOKE UNRUN
 ================================================================================
-Built            : (pending)  windows\build-win-arm64.ps1 (Native on ARM64, or
-                   CrossFromX64 on x64 - say which; a cross build's smoke test is UNRUN)
-Build host       :
-Visual Studio/cl :
-cmake            :
-Size             :
-SHA256           :
-PDB              :   -> unstripped/win-arm64/codebrix_vorbis.pdb
-Dependents       :
-Smoke test       :
+Built            : 2026-10-10 17:38:13 UTC (13 s)
+Built by         : windows\build-win-arm64.ps1 -AdoptCrossBuild
+                   (route: CrossFromX64 - x64 host, vcvarsall.bat x64_arm64, -A ARM64)
+Build host       : the x64 desktop above
+Visual Studio/cl : Visual Studio Professional 2026 18.10.3 / cl 19.51.36260 for ARM64
+                   (HostX64\ARM64 cross compiler)
+cmake            : 4.4.3, generator "Visual Studio 18 2026" -A ARM64,
+                   CMAKE_GENERATOR_INSTANCE = the instance above
+File             : codebrix_vorbis.dll - PE32+ ARM64 (machine 0xAA64), linker 14.51,
+                   OS/subsystem version 6.02, timestamp 0x6ACA7811
+Size             : 829952 bytes
+SHA256           : 1f040bf41e19c367838ed4c99595913064aa6c1068a62fe7cf42a4a23c33f514
+PDB              : codebrix_vorbis.pdb, 4206592 bytes -> unstripped/win-arm64/codebrix_vorbis.pdb
+                   sha256 05f2f921e8cfb475624e3e518495f3da22854ebad02f9269694fd24e72b60f86
+                   RSDS GUID {2AE59A10-CD61-4D78-9170-E9806BD5867F} age 1
+Exports          : exactly the 11 codebrix_vorbis_* functions
+Dependents       : KERNEL32.dll (static CRT; no Visual C++ Redistributable)
+Smoke test       : NOT RUN - an x64 Windows host cannot execute ARM64 code. The
+                   static checks (machine type both ways, exact exports,
+                   dependents, licences) all passed; adopted with -AdoptCrossBuild
+                   on purpose, because the binary is needed before the device is.
+                   Gate status in BUILD-INFO.txt: INCOMPLETE.
+To finish the gate: on an ARM64 Windows device (Jeremy's Surface Pro X), with
+                   output/win-arm64/codebrix_vorbis.dll (sha256 above) and
+                   output/win-arm64/smoke-test.exe (the ARM64 build of
+                   ../smoke-test.c from this run) copied into one folder, run
+                       smoke-test.exe <full path>\codebrix_vorbis.dll
+                   and expect "SMOKE TEST PASSED", exit 0. Then replace this
+                   line with the device, date and result. The managed test suite
+                   run on that device (dotnet test on an ARM64 .NET 10 SDK) is
+                   the equivalent of the win-x64 "Managed proof" line.
 
 macOS (the two osx-* entries) - scripts UNRUN
 --------------------------------------------------------------------------------
